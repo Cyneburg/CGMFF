@@ -36,7 +36,6 @@ class GATNet(torch.nn.Module):
     def __init__(self, num_features_xd=78, num_features_xc=92, n_output=1, output_dim=128, dropout=0.2, layers=3, encoder = None):
         super(GATNet, self).__init__()
 
-        # self.encoder = encoder
         self.n_output = n_output
         self.mol_conv = nn.ModuleList([])
         self.mol_conv.append(TransformerConv(num_features_xd, num_features_xd * 4, heads=2, dropout=dropout, concat=False))
@@ -66,7 +65,6 @@ class GATNet(torch.nn.Module):
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
 
-        # combined layers
         self.fc1 = nn.Linear(output_dim * 2, 2048)
         self.fc2 = nn.Linear(2048, 512)
         self.out = nn.Linear(512, self.n_output)
@@ -86,14 +84,12 @@ class GATNet(torch.nn.Module):
             mol_z = torch.sigmoid(self.mol_seq_fc1(x) + self.mol_seq_fc2(mol_x) + self.mol_bias.expand(mol_n, self.mol_out_feats))
             mol_x = mol_z * x + (1 - mol_z) * mol_x
 
-        x = gmp(mol_x, mol_batch)  # global pooling
-        # flatten
+        x = gmp(mol_x, mol_batch)
         x = self.relu(self.mol_fc_g1(x))
         x = self.dropout(x)
         x = self.mol_fc_g2(x)
         x = self.dropout(x)
 
-        # clique graph embedding
         xq_n = clique_x.size(0)
         for i in range(len(self.clique_conv)):
             xq = self.clique_conv[i](clique_x, clique_edge_index)
@@ -106,8 +102,7 @@ class GATNet(torch.nn.Module):
                                                                                                   self.clique_out_feats))
             clique_x = clique_z * xq + (1 - clique_z) * clique_x
 
-        xq = gmp(clique_x, cli_batch)  # global max pooling
-        # flatten
+        xq = gmp(clique_x, cli_batch)
         xq = self.relu(self.clique_fc_g1(xq))
         xq = self.dropout(xq)
         xq = self.clique_fc_g2(xq)
@@ -117,7 +112,6 @@ class GATNet(torch.nn.Module):
         emb = torch.stack([x, xq], dim=1)
         a = a.unsqueeze(dim=2)
         emb = (a * emb).reshape(-1, 2 * 128)
-        # add some dense layers
         xc = self.fc1(emb)
         xc = self.relu(xc)
         xc = self.dropout(xc)
