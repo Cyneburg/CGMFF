@@ -9,7 +9,6 @@ from utils_test import *
 from torch_geometric.data import DataLoader
 from math import sqrt
 from pytorchtools import EarlyStopping
-# training function at each epoch
 from tqdm import trange
 
 def seed_everything(seed=42):
@@ -22,7 +21,6 @@ def train(model, device, data_train, optimizer, epoch):
     print('\n Training on {} samples...'.format(len(data_train.dataset)))
     model.train()
     total_loss = 0
-    # train_loader = np.array(train_loader)
     for batch_idx, data in enumerate(data_train):
         data_mol = data[0].to(device)
         data_clique = data[1].to(device)
@@ -76,8 +74,6 @@ Mode = "scaffold"
 print('Learning rate: ', LR)
 print('Epochs: ', NUM_EPOCHS)
 
-
-# CPU or GPU
 if torch.cuda.is_available():
     device = torch.device('cuda')
     print('The code uses GPU...')
@@ -108,7 +104,6 @@ for datafile in set:
             train_data, valid_data, test_data = random_split(data, smiles_list, null_value=0, frac_train=0.8,
                                                              frac_valid=0.1, frac_test=0.1, seed=random_seed)
         print('model', modeling)
-        #5:1划分数据集(训练集:测试集)
         train_data = DataLoader(train_data, batch_size=TRAIN_BATCH_SIZE)
         valid_data = DataLoader(valid_data, batch_size=TRAIN_BATCH_SIZE)
         model_file_name = 'result/model/'+ datafile +'/model_{}_{}'.format(random_seed,Mode) +  '.model'
@@ -116,10 +111,7 @@ for datafile in set:
         best_AUC = 0
         for epoch in trange(NUM_EPOCHS):
             total_loss = train(model, device, train_data, optimizer, epoch + 1)
-            # T is correct score
-            # S is predict score
             T, S, Y = predicting(model, device, valid_data)
-            # # compute preformence
             AUC = roc_auc_score(T,S)
             if best_AUC < AUC:
                 best_AUC = AUC
