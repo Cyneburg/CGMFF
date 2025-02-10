@@ -1,1 +1,1 @@
-# Chemical intuition-guided multi-view feature fusion for molecular property prediction
+# Chemical intuition-guided multi-view feature fusion framework for molecular property prediction
