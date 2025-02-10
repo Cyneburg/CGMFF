@@ -346,58 +346,7 @@ def random_split(dataset, task_idx=None, null_value=0,
 
 
 def creat_data(datasets, mode, seed):
-    if datasets == 'baidu':
-        compound_iso_smiles = []
-        if mode == 'train':
-            df = pd.read_csv('data/baidu/train.csv')
-            compound_iso_smiles += list(df['smiles'])
-            compound_iso_smiles = set(compound_iso_smiles)
-            smile_graph = {}
-            clique_graph = {}
-            print('compound_iso_smiles', compound_iso_smiles)
-            for smile in compound_iso_smiles:
-                g = smile_to_graph(smile)
-                clique = clique_to_graph(smile)
-                smile_graph[smile] = g
-                clique_graph[smile] = clique
-            random.seed(seed)
-            df = pd.read_csv('data/baidu/train.csv')
-            random_num = random.sample(range(0, len(df)), len(df))
-            pot = len(df) // 5
-            valid_num = random_num[pot:pot * 2]
-            train_num = random_num[:pot] + random_num[pot * 2:]
-            data_train = df.loc[train_num]
-            data_valid = df.loc[valid_num]
-            drug_train, label_train, drug_valid, label_valid = list(data_train['smiles']), list(data_train['label']),list(data_valid['smiles']), list(data_valid['label'])
-            drug_train, label_train, drug_valid, label_valid = np.asarray(drug_train), np.asarray(label_train),np.asarray(drug_valid), np.asarray(label_valid)
-            print('开始创建数据')
-            print(datasets)
-            train_data = MPPDataset(root='data', dataset=datasets, xd=drug_train, y=label_train, smile_graph=smile_graph, clique_graph=clique_graph)
-            valid_data = MPPDataset(root='data', dataset=datasets, xd=drug_valid, y=label_valid, smile_graph=smile_graph, clique_graph=clique_graph)
-            print('创建数据成功')
-
-            return train_data,valid_data
-        else:
-            df = pd.read_csv('data/baidu/test.csv'.format(datasets))
-            compound_iso_smiles += list(df['smiles'])
-            compound_iso_smiles = set(compound_iso_smiles)
-            smile_graph = {}
-            clique_graph = {}
-            print('compound_iso_smiles', compound_iso_smiles)
-            for smile in compound_iso_smiles:
-                g = smile_to_graph(smile)
-                clique = clique_to_graph(smile)
-                smile_graph[smile] = g
-                clique_graph[smile] = clique
-            df = pd.read_csv('data/' + datasets + '/test.csv')
-            df['label'] = [0] * len(df)
-            drug, label = list(df['smiles']), list(df['label'])
-            drug, label = np.asarray(drug), np.asarray(label)
-            dataset = MPPDataset(root='data', dataset=datasets, xd=drug, y=label, smile_graph=smile_graph,
-                                 clique_graph=clique_graph)
-            print('创建数据成功')
-            return dataset
-    elif datasets == 'tox21':
+    if datasets == 'tox21':
         input_df = pd.read_csv('data/MPP/tox21/raw/tox21.csv', sep=',')
         smiles_list = input_df['smiles']
         tasks = ['NR-AR', 'NR-AR-LBD', 'NR-AhR', 'NR-Aromatase', 'NR-ER', 'NR-ER-LBD',
